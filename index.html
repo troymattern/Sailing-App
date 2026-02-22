@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Polar Builder">
+  <meta name="theme-color" content="#0a1628">
+  <title>Sailboat Polar Builder</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>&#9973; Sailboat Polar Builder</h1>
+    <p class="subtitle">Record speed data to build your boat's polar diagram</p>
+  </header>
+
+  <main>
+    <!-- GPS Panel -->
+    <section class="panel gps-panel">
+      <h2>GPS Speed</h2>
+      <div class="speed-display">
+        <span id="gps-speed">--.-</span>
+        <span class="unit">kts</span>
+      </div>
+      <div class="gps-status">
+        <span id="gps-dot" class="status-dot inactive"></span>
+        <span id="gps-label">GPS not connected</span>
+      </div>
+      <div class="gps-details">
+        <div class="detail">
+          <label>Heading (COG)</label>
+          <span id="gps-heading">---</span>&deg;
+        </div>
+        <div class="detail">
+          <label>Accuracy</label>
+          <span id="gps-accuracy">---</span> m
+        </div>
+      </div>
+      <button id="btn-gps" class="btn btn-primary">Start GPS</button>
+    </section>
+
+    <!-- Wind Input Panel -->
+    <section class="panel wind-panel">
+      <h2>Wind Conditions</h2>
+
+      <div class="input-group">
+        <label for="twa">True Wind Angle (TWA)</label>
+        <div class="input-row">
+          <input type="range" id="twa-slider" min="0" max="180" value="90" step="1">
+          <div class="number-input-wrap">
+            <input type="number" id="twa" min="0" max="180" value="90" step="1">
+            <span class="unit">&deg;</span>
+          </div>
+        </div>
+        <div class="angle-labels">
+          <span>0° (head-to-wind)</span>
+          <span>90° (beam reach)</span>
+          <span>180° (run)</span>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="tws">True Wind Speed (TWS)</label>
+        <div class="input-row">
+          <input type="range" id="tws-slider" min="0" max="40" value="12" step="1">
+          <div class="number-input-wrap">
+            <input type="number" id="tws" min="0" max="60" value="12" step="0.5">
+            <span class="unit">kts</span>
+          </div>
+        </div>
+        <div class="wind-presets">
+          <button class="preset-btn" data-tws="6">6</button>
+          <button class="preset-btn" data-tws="8">8</button>
+          <button class="preset-btn" data-tws="10">10</button>
+          <button class="preset-btn" data-tws="12">12</button>
+          <button class="preset-btn" data-tws="16">16</button>
+          <button class="preset-btn" data-tws="20">20</button>
+          <button class="preset-btn" data-tws="25">25</button>
+        </div>
+      </div>
+
+      <div class="wind-description" id="wind-description">Beam reach</div>
+
+      <button id="btn-record" class="btn btn-record" disabled>
+        Record Data Point
+      </button>
+      <div id="record-feedback" class="record-feedback hidden"></div>
+    </section>
+
+    <!-- Polar Chart -->
+    <section class="panel chart-panel">
+      <h2>Polar Diagram</h2>
+      <div class="chart-controls">
+        <label>
+          <input type="checkbox" id="toggle-labels" checked> Show labels
+        </label>
+        <label>
+          <input type="checkbox" id="toggle-points" checked> Show data points
+        </label>
+        <button id="btn-clear-chart" class="btn btn-small btn-danger">Clear All Data</button>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="polar-canvas" width="520" height="520"></canvas>
+      </div>
+      <div class="legend" id="chart-legend"></div>
+    </section>
+
+    <!-- Data Table -->
+    <section class="panel table-panel">
+      <h2>Recorded Data Points <span id="point-count" class="badge">0</span></h2>
+      <div class="table-actions">
+        <button id="btn-export" class="btn btn-small">Export CSV</button>
+        <button id="btn-import-label" class="btn btn-small">Import CSV</button>
+        <input type="file" id="btn-import" accept=".csv" style="display:none">
+      </div>
+      <div class="table-wrap">
+        <table id="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>TWA (&deg;)</th>
+              <th>TWS (kts)</th>
+              <th>BSP (kts)</th>
+              <th>Time</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr class="empty-row">
+              <td colspan="6">No data recorded yet. Start GPS and record your first point.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
