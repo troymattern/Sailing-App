@@ -41,32 +41,46 @@
       <button id="btn-gps" class="btn btn-primary">Start GPS</button>
     </section>
 
-    <!-- Wind Input Panel -->
+    <!-- Sailing Instructions Panel -->
     <section class="panel wind-panel">
-      <h2>Wind Conditions</h2>
+      <h2>Sailing Instructions</h2>
 
-      <div class="input-group">
-        <label for="twa">True Wind Angle (TWA)</label>
-        <div class="input-row">
-          <input type="range" id="twa-slider" min="0" max="180" value="90" step="1">
-          <div class="number-input-wrap">
-            <input type="number" id="twa" min="0" max="180" value="90" step="1">
-            <span class="unit">&deg;</span>
-          </div>
+      <!-- Step 1: Target angle instruction -->
+      <div class="instruction-card">
+        <div class="instruction-label">Sail to True Wind Angle</div>
+        <div class="instruction-angle-row">
+          <span id="target-twa-display">90</span><span class="deg-unit">°</span>
         </div>
-        <div class="angle-labels">
-          <span>0° (head-to-wind)</span>
-          <span>90° (beam reach)</span>
-          <span>180° (run)</span>
-        </div>
+        <div class="instruction-desc" id="angle-desc">Beam Reach</div>
       </div>
 
-      <div class="input-group">
-        <label for="tws">True Wind Speed (TWS)</label>
+      <!-- Angle navigation -->
+      <div class="angle-nav">
+        <button id="btn-prev-angle" class="btn btn-nav">&#8592; Prev</button>
+        <span class="angle-index-label">
+          angle <span id="angle-index">5</span> of <span id="angle-total">9</span>
+        </span>
+        <button id="btn-next-angle" class="btn btn-nav">Next &#8594;</button>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Step 2: Confirm at angle -->
+      <div class="confirm-section" id="confirm-section">
+        <p class="step-label">Step 1 — Confirm your point of sail</p>
+        <button id="btn-at-angle" class="btn btn-confirm" disabled>
+          &#10003;&nbsp; I'm sailing at <span id="confirm-twa-label">90</span>°
+        </button>
+      </div>
+
+      <!-- Step 3: TWS input (revealed after confirmation) -->
+      <div class="tws-section hidden" id="tws-section">
+        <p class="step-label">Step 2 — Enter True Wind Speed</p>
+
         <div class="input-row">
-          <input type="range" id="tws-slider" min="0" max="40" value="12" step="1">
+          <input type="range" id="tws-slider" min="1" max="40" value="12" step="1">
           <div class="number-input-wrap">
-            <input type="number" id="tws" min="0" max="60" value="12" step="0.5">
+            <input type="number" id="tws" min="1" max="60" value="12" step="0.5">
             <span class="unit">kts</span>
           </div>
         </div>
@@ -79,13 +93,15 @@
           <button class="preset-btn" data-tws="20">20</button>
           <button class="preset-btn" data-tws="25">25</button>
         </div>
+
+        <button id="btn-record" class="btn btn-record">
+          Record GPS Speed
+        </button>
+        <button id="btn-cancel-confirm" class="btn btn-small btn-cancel">
+          &#8592; Back
+        </button>
       </div>
 
-      <div class="wind-description" id="wind-description">Beam reach</div>
-
-      <button id="btn-record" class="btn btn-record" disabled>
-        Record Data Point
-      </button>
       <div id="record-feedback" class="record-feedback hidden"></div>
     </section>
 

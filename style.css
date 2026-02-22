@@ -302,6 +302,129 @@ input[type="range"]::-moz-range-thumb {
   color: white;
 }
 
+/* ── Instruction card ── */
+.instruction-card {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+  border-radius: 12px;
+  padding: 20px 16px 16px;
+  text-align: center;
+  margin-bottom: 14px;
+  color: white;
+}
+
+.instruction-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: rgba(255,255,255,0.60);
+  margin-bottom: 6px;
+}
+
+.instruction-angle-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1;
+}
+
+.instruction-angle-row #target-twa-display {
+  font-size: 5.5rem;
+  font-weight: 900;
+  letter-spacing: -4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.deg-unit {
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+}
+
+.instruction-desc {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--teal);
+  margin-top: 4px;
+}
+
+/* ── Angle navigation ── */
+.angle-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.angle-index-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+  flex: 1;
+}
+
+.btn-nav {
+  background: var(--bg);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.btn-nav:hover { background: var(--border); }
+
+/* ── Divider ── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 14px 0;
+}
+
+/* ── Confirm / TWS sections ── */
+.step-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.btn-confirm {
+  width: 100%;
+  background: var(--green);
+  color: white;
+  font-size: 1.05rem;
+  padding: 15px;
+  min-height: 54px;
+  border-radius: 10px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.btn-confirm:hover:not(:disabled) { filter: brightness(0.92); }
+.btn-confirm:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.tws-section {
+  margin-top: 4px;
+}
+
+.btn-cancel {
+  width: 100%;
+  margin-top: 8px;
+  color: var(--muted);
+  border-color: var(--border);
+}
+
 .wind-description {
   text-align: center;
   font-size: 0.95rem;
