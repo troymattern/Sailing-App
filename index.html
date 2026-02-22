@@ -25,10 +25,38 @@
         <button id="btn-boat-setup" class="btn-boat-trigger" title="Set boat background photo">
           &#9875; Boat Photo
         </button>
+        <!-- Transparency control — shown only when a background is active -->
+        <div id="bg-opacity-ctrl" class="bg-opacity-ctrl hidden">
+          <button id="btn-opacity-toggle" class="btn-boat-trigger btn-opacity-toggle" title="Adjust background transparency">
+            &#9680; Transparency
+          </button>
+          <div id="opacity-slider-wrap" class="opacity-slider-wrap hidden">
+            <span class="opacity-icon">&#128262;</span>
+            <input type="range" id="bg-opacity-slider" min="10" max="100" value="55" step="1"
+                   aria-label="Background transparency">
+            <span class="opacity-icon">&#128261;</span>
+            <button id="btn-opacity-close" class="btn-opacity-close" title="Close">&times;</button>
+          </div>
+        </div>
         <span id="boat-name-badge" class="boat-name-badge hidden"></span>
       </div>
     </div>
   </header>
+
+  <!-- Session / Sail-Config Bar -->
+  <div class="session-bar">
+    <div class="session-left">
+      <span class="session-bar-label">Sail Config</span>
+      <select id="session-select" class="session-select" aria-label="Active sail configuration"></select>
+      <button id="btn-new-session"    class="btn btn-small" title="Create a new sail configuration">+ New</button>
+      <button id="btn-rename-session" class="btn btn-small" title="Rename current configuration">Rename</button>
+      <button id="btn-delete-session" class="btn btn-small btn-danger" title="Delete current configuration">Delete</button>
+    </div>
+    <div class="session-right">
+      <span id="online-dot"   class="conn-dot" title="Network status"></span>
+      <span id="online-label" class="conn-label">Online</span>
+    </div>
+  </div>
 
   <main>
     <!-- GPS Panel -->
@@ -129,7 +157,13 @@
         <label>
           <input type="checkbox" id="toggle-points" checked> Show data points
         </label>
-        <button id="btn-clear-chart" class="btn btn-small btn-danger">Clear All Data</button>
+        <label>
+          <input type="checkbox" id="toggle-smooth" checked> Smooth curves
+        </label>
+        <label>
+          <input type="checkbox" id="toggle-compare"> Compare all configs
+        </label>
+        <button id="btn-clear-chart" class="btn btn-small btn-danger">Clear Session Data</button>
       </div>
       <div class="canvas-wrap">
         <canvas id="polar-canvas" width="520" height="520"></canvas>
@@ -141,9 +175,12 @@
     <section class="panel table-panel">
       <h2>Recorded Data Points <span id="point-count" class="badge">0</span></h2>
       <div class="table-actions">
-        <button id="btn-export" class="btn btn-small">Export CSV</button>
+        <button id="btn-export"       class="btn btn-small">Export CSV</button>
         <button id="btn-import-label" class="btn btn-small">Import CSV</button>
-        <input type="file" id="btn-import" accept=".csv" style="display:none">
+        <input  type="file" id="btn-import" accept=".csv" style="display:none">
+        <button id="btn-export-json"       class="btn btn-small">&#9729; Backup</button>
+        <button id="btn-import-json-label" class="btn btn-small">&#8635; Restore</button>
+        <input  type="file" id="btn-import-json" accept=".json" style="display:none">
       </div>
       <div class="table-wrap">
         <table id="data-table">
@@ -166,6 +203,22 @@
       </div>
     </section>
   </main>
+
+  <!-- Session Name Modal (create / rename) -->
+  <div id="session-modal" class="boat-modal hidden" role="dialog" aria-modal="true" aria-labelledby="session-modal-title">
+    <div class="boat-modal-box">
+      <h3 id="session-modal-title">New Sail Configuration</h3>
+      <p class="boat-modal-desc">Give this configuration a name, e.g. "Main + Genoa" or "Spinnaker Run".</p>
+      <input type="text" id="session-name-input" class="boat-name-input"
+             placeholder="e.g. Main + Genoa" maxlength="50"
+             autocomplete="off" autocorrect="off" spellcheck="false">
+      <div id="session-modal-status" class="boat-search-status"></div>
+      <div class="boat-modal-actions">
+        <button id="btn-session-confirm" class="btn btn-primary">Save</button>
+        <button id="btn-session-cancel"  class="btn btn-small">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Boat Background Modal -->
   <div id="boat-modal" class="boat-modal hidden" role="dialog" aria-modal="true" aria-labelledby="boat-modal-title">
@@ -192,7 +245,7 @@
       <div id="boat-search-status" class="boat-search-status"></div>
 
       <div class="boat-modal-actions">
-        <button id="btn-boat-clear" class="btn btn-small btn-danger">Clear Background</button>
+        <button id="btn-boat-clear"  class="btn btn-small btn-danger">Clear Background</button>
         <button id="btn-boat-cancel" class="btn btn-small">Cancel</button>
       </div>
     </div>
