@@ -11,9 +11,23 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- Full-page boat background image layer -->
+  <div id="boat-bg" aria-hidden="true"></div>
+
   <header>
-    <h1>&#9973; Sailboat Polar Builder</h1>
-    <p class="subtitle">Record speed data to build your boat's polar diagram</p>
+    <div class="header-top">
+      <div>
+        <h1>&#9973; Sailboat Polar Builder</h1>
+        <p class="subtitle">Record speed data to build your boat's polar diagram</p>
+      </div>
+      <div class="header-boat">
+        <button id="btn-boat-setup" class="btn-boat-trigger" title="Set boat background photo">
+          &#9875; Boat Photo
+        </button>
+        <span id="boat-name-badge" class="boat-name-badge hidden"></span>
+      </div>
+    </div>
   </header>
 
   <main>
@@ -152,6 +166,37 @@
       </div>
     </section>
   </main>
+
+  <!-- Boat Background Modal -->
+  <div id="boat-modal" class="boat-modal hidden" role="dialog" aria-modal="true" aria-labelledby="boat-modal-title">
+    <div class="boat-modal-box">
+      <h3 id="boat-modal-title">&#9973; Boat Background Photo</h3>
+      <p class="boat-modal-desc">Search by boat name, or upload a photo from your device.</p>
+
+      <p class="boat-modal-section-label">Search online</p>
+      <div class="boat-search-row">
+        <input type="text" id="boat-name-input" class="boat-name-input"
+               placeholder="e.g. Catalina 22, J/24, Laser"
+               maxlength="80" autocomplete="off" autocorrect="off" spellcheck="false">
+        <button id="btn-boat-search" class="btn btn-primary btn-find">Find</button>
+      </div>
+
+      <div class="boat-modal-or"><span>or</span></div>
+
+      <p class="boat-modal-section-label">Upload from your device</p>
+      <label class="btn btn-small btn-upload-label" for="boat-photo-input">
+        &#128444; Choose Photo&hellip;
+      </label>
+      <input type="file" id="boat-photo-input" accept="image/*" style="display:none">
+
+      <div id="boat-search-status" class="boat-search-status"></div>
+
+      <div class="boat-modal-actions">
+        <button id="btn-boat-clear" class="btn btn-small btn-danger">Clear Background</button>
+        <button id="btn-boat-cancel" class="btn btn-small">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>

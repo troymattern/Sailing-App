@@ -704,3 +704,205 @@ tbody td {
   .wind-presets { gap: 4px; }
   .preset-btn { padding: 6px 10px; font-size: 0.8rem; }
 }
+
+/* === Boat Background Layer === */
+#boat-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  /* Darken to keep foreground readable; no blur so the boat photo is clearly visible */
+  filter: brightness(0.55);
+  /* Scale slightly to avoid any edge artifacts */
+  transform: scale(1.04);
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+#boat-bg.active { opacity: 1; }
+
+/* When a boat bg is active, panels become semi-transparent glass */
+body.has-boat-bg {
+  background: transparent;
+}
+body.has-boat-bg .panel {
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+body.has-boat-bg header {
+  background: rgba(10, 22, 40, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+body.has-boat-bg main {
+  /* keep main background transparent so bg shows between panels */
+  background: transparent;
+}
+
+/* === Header layout with boat button === */
+.header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header-boat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-boat-trigger {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  min-height: 38px;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-boat-trigger:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.boat-name-badge {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.70);
+  text-align: right;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* === Boat Background Modal === */
+.boat-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.boat-modal.hidden { display: none; }
+
+.boat-modal-box {
+  background: white;
+  border-radius: 16px;
+  padding: 28px 28px 24px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+.boat-modal-box h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.boat-modal-desc {
+  font-size: 0.86rem;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.boat-modal-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.boat-search-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.boat-name-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  font-size: 16px;
+  color: var(--navy);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.15s;
+}
+.boat-name-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.btn-find {
+  white-space: nowrap;
+  padding: 10px 18px;
+  flex-shrink: 0;
+}
+
+.boat-modal-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 14px;
+  color: var(--border);
+  font-size: 0.8rem;
+}
+.boat-modal-or::before,
+.boat-modal-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.boat-modal-or span { color: var(--muted); }
+
+.btn-upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  margin-bottom: 14px;
+}
+.btn-upload-label:hover { background: var(--border); }
+
+.boat-search-status {
+  font-size: 0.84rem;
+  min-height: 20px;
+  margin-bottom: 14px;
+  padding: 0 2px;
+}
+.boat-search-status.searching { color: var(--accent); }
+.boat-search-status.success   { color: var(--green); }
+.boat-search-status.error     { color: var(--red); }
+
+.boat-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .boat-modal-box { padding: 22px 18px 18px; }
+  .header-top { flex-wrap: wrap; }
+}

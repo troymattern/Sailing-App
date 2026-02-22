@@ -629,8 +629,254 @@ elBtnImport.addEventListener('change', e => {
   e.target.value = '';
 });
 
+// ─── Boat Background ──────────────────────────────────────────────────────────
+const BOAT_STORAGE_KEY = 'polar_boat_bg';
+
+// Only allow images from Wikimedia servers or local data URIs
+function isAllowedImageUrl(url) {
+  if (typeof url !== 'string') return false;
+  if (url.startsWith('data:image/')) return true;
+  try {
+    const u = new URL(url);
+    return ['upload.wikimedia.org', 'commons.wikimedia.org'].includes(u.hostname);
+  } catch { return false; }
+}
+
+// Pick the best (largest) image from a Wikipedia page summary response
+function getBestWikiImageUrl(data) {
+  const orig  = data.originalimage?.source;
+  const thumb = data.thumbnail?.source;
+  const candidate = orig || thumb;
+  if (!candidate || !isAllowedImageUrl(candidate)) return null;
+  return candidate;
+}
+
+// Search Wikipedia and Wikimedia Commons for a boat photo.
+// Returns the first usable image URL, or null if nothing found.
+async function searchBoatImage(boatName) {
+  const enc = encodeURIComponent(boatName);
+
+  // 1. Direct Wikipedia page summary (fastest path)
+  try {
+    const r = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${enc}`
+    );
+    if (r.ok) {
+      const url = getBestWikiImageUrl(await r.json());
+      if (url) return url;
+    }
+  } catch {}
+
+  // 2. Wikipedia search → check top results for an image
+  try {
+    const r = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&list=search` +
+      `&srsearch=${enc}+sailboat&format=json&origin=*&srlimit=5`
+    );
+    if (r.ok) {
+      const results = (await r.json())?.query?.search || [];
+      for (const result of results) {
+        try {
+          const s = await fetch(
+            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(result.title)}`
+          );
+          if (s.ok) {
+            const url = getBestWikiImageUrl(await s.json());
+            if (url) return url;
+          }
+        } catch {}
+      }
+    }
+  } catch {}
+
+  // 3. Wikimedia Commons image file search
+  try {
+    const r = await fetch(
+      `https://commons.wikimedia.org/w/api.php?action=query` +
+      `&generator=search&gsrsearch=${enc}+sailboat&gsrnamespace=6` +
+      `&prop=imageinfo&iiprop=url&format=json&origin=*&gsrlimit=5`
+    );
+    if (r.ok) {
+      const pages = (await r.json())?.query?.pages || {};
+      for (const page of Object.values(pages)) {
+        const url = page.imageinfo?.[0]?.url;
+        if (url && isAllowedImageUrl(url) && /\.(jpe?g|png|webp)$/i.test(url)) {
+          return url;
+        }
+      }
+    }
+  } catch {}
+
+  return null;
+}
+
+// Resize an uploaded photo to max 1280px wide and re-encode as JPEG for storage efficiency
+function resizeForStorage(dataUrl, callback) {
+  const img = new Image();
+  img.onload = () => {
+    const MAX = 1280;
+    const scale = img.width > MAX ? MAX / img.width : 1;
+    const c = document.createElement('canvas');
+    c.width  = Math.round(img.width  * scale);
+    c.height = Math.round(img.height * scale);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    callback(c.toDataURL('image/jpeg', 0.82));
+  };
+  img.onerror = () => callback(dataUrl); // fall back to original on error
+  img.src = dataUrl;
+}
+
+// ── Boat bg DOM refs ──────────────────────────────────────────────────────────
+const elBoatBg         = document.getElementById('boat-bg');
+const elBoatModal      = document.getElementById('boat-modal');
+const elBoatNameInput  = document.getElementById('boat-name-input');
+const elBoatStatus     = document.getElementById('boat-search-status');
+const elBtnBoatOpen    = document.getElementById('btn-boat-setup');
+const elBtnBoatSearch  = document.getElementById('btn-boat-search');
+const elBtnBoatClear   = document.getElementById('btn-boat-clear');
+const elBtnBoatCancel  = document.getElementById('btn-boat-cancel');
+const elBoatPhotoInput = document.getElementById('boat-photo-input');
+const elBoatBadge      = document.getElementById('boat-name-badge');
+
+function setBoatBackground(imageUrl, boatName) {
+  // Escape any double-quotes in the URL before putting it in a CSS url()
+  elBoatBg.style.backgroundImage = `url("${imageUrl.replace(/"/g, '%22')}")`;
+  elBoatBg.classList.add('active');
+  document.body.classList.add('has-boat-bg');
+
+  const label = boatName ? escHtml(boatName) : '';
+  elBoatBadge.textContent = label;
+  elBoatBadge.classList.toggle('hidden', !label);
+
+  try {
+    localStorage.setItem(BOAT_STORAGE_KEY, JSON.stringify({ url: imageUrl, name: boatName || '' }));
+  } catch {
+    // Storage quota exceeded (common with large data-URL photos) — only keep in-memory
+  }
+}
+
+function clearBoatBackground() {
+  elBoatBg.style.backgroundImage = '';
+  elBoatBg.classList.remove('active');
+  document.body.classList.remove('has-boat-bg');
+  elBoatBadge.textContent = '';
+  elBoatBadge.classList.add('hidden');
+  localStorage.removeItem(BOAT_STORAGE_KEY);
+}
+
+function loadBoatBackground() {
+  try {
+    const raw = localStorage.getItem(BOAT_STORAGE_KEY);
+    if (!raw) return;
+    const { url, name } = JSON.parse(raw);
+    if (isAllowedImageUrl(url)) setBoatBackground(url, name);
+  } catch {}
+}
+
+function openBoatModal() {
+  elBoatModal.classList.remove('hidden');
+  elBoatNameInput.focus();
+}
+
+function closeBoatModal() {
+  elBoatModal.classList.add('hidden');
+  elBoatStatus.textContent = '';
+  elBoatStatus.className = 'boat-search-status';
+}
+
+elBtnBoatOpen.addEventListener('click', openBoatModal);
+elBtnBoatCancel.addEventListener('click', closeBoatModal);
+elBoatModal.addEventListener('click', e => { if (e.target === elBoatModal) closeBoatModal(); });
+
+elBoatNameInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter')  elBtnBoatSearch.click();
+  if (e.key === 'Escape') closeBoatModal();
+});
+
+elBtnBoatClear.addEventListener('click', () => {
+  clearBoatBackground();
+  closeBoatModal();
+});
+
+// Online image search
+elBtnBoatSearch.addEventListener('click', async () => {
+  const raw = elBoatNameInput.value.trim();
+  if (!raw) return;
+  const boatName = raw.replace(/[<>"'&]/g, '').slice(0, 80);
+  if (!boatName) return;
+
+  elBoatStatus.className = 'boat-search-status searching';
+  elBoatStatus.textContent = `Searching for "${boatName}"…`;
+  elBtnBoatSearch.disabled = true;
+
+  try {
+    const url = await searchBoatImage(boatName);
+    if (url) {
+      setBoatBackground(url, boatName);
+      elBoatStatus.className = 'boat-search-status success';
+      elBoatStatus.textContent = '✓ Background set!';
+      setTimeout(closeBoatModal, 1200);
+    } else {
+      elBoatStatus.className = 'boat-search-status error';
+      elBoatStatus.textContent = 'No image found — try a more specific model name.';
+    }
+  } catch {
+    elBoatStatus.className = 'boat-search-status error';
+    elBoatStatus.textContent = 'Search failed. Check your connection and try again.';
+  } finally {
+    elBtnBoatSearch.disabled = false;
+  }
+});
+
+// Local photo upload
+elBoatPhotoInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    elBoatStatus.className = 'boat-search-status error';
+    elBoatStatus.textContent = 'Please select an image file.';
+    e.target.value = '';
+    return;
+  }
+  if (file.size > 25_000_000) {
+    elBoatStatus.className = 'boat-search-status error';
+    elBoatStatus.textContent = 'File too large (max 25 MB).';
+    e.target.value = '';
+    return;
+  }
+
+  elBoatStatus.className = 'boat-search-status searching';
+  elBoatStatus.textContent = 'Loading photo…';
+
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const raw = ev.target.result;
+    if (typeof raw !== 'string' || !raw.startsWith('data:image/')) {
+      elBoatStatus.className = 'boat-search-status error';
+      elBoatStatus.textContent = 'Could not read the image file.';
+      return;
+    }
+    resizeForStorage(raw, dataUrl => {
+      const displayName = file.name.replace(/\.[^.]+$/, '');
+      setBoatBackground(dataUrl, displayName);
+      elBoatStatus.className = 'boat-search-status success';
+      elBoatStatus.textContent = '✓ Background set!';
+      openBoatModal(); // keep modal visible so status is seen
+      setTimeout(closeBoatModal, 1400);
+    });
+  };
+  reader.onerror = () => {
+    elBoatStatus.className = 'boat-search-status error';
+    elBoatStatus.textContent = 'Failed to read file.';
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 dataPoints = loadData();
+loadBoatBackground();
 renderAngleInstruction();
 updateConfirmButton();
 renderTable();
