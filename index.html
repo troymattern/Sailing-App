@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Polar Builder">
-  <meta name="theme-color" content="#0a1628">
+  <meta name="theme-color" content="#020c18">
   <title>Sailboat Polar Builder</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -53,6 +53,9 @@
       <button id="btn-delete-session" class="btn btn-small btn-danger" title="Delete current configuration">Delete</button>
     </div>
     <div class="session-right">
+      <button id="btn-color-settings" class="btn btn-small session-color-btn" title="Adjust display colors">
+        &#127912; Colors
+      </button>
       <span id="online-dot"   class="conn-dot" title="Network status"></span>
       <span id="online-label" class="conn-label">Online</span>
     </div>
@@ -203,6 +206,60 @@
       </div>
     </section>
   </main>
+
+  <!-- Color Settings Modal -->
+  <div id="color-modal" class="boat-modal hidden" role="dialog" aria-modal="true" aria-labelledby="color-modal-title">
+    <div class="boat-modal-box color-modal-box">
+      <h3 id="color-modal-title">&#127912; Display Colors</h3>
+      <p class="boat-modal-desc">Adjust colors for the best presentation with your background image or color scheme.</p>
+
+      <!-- Text Brightness -->
+      <div class="color-setting">
+        <label class="color-setting-label">Text Color</label>
+        <div class="color-slider-row">
+          <span class="color-slider-hint">Dark</span>
+          <input type="range" id="text-brightness-slider" min="0" max="100" value="0" step="1">
+          <span class="color-slider-hint right">Light</span>
+        </div>
+      </div>
+
+      <!-- Panel Opacity -->
+      <div class="color-setting">
+        <label class="color-setting-label">Panel Background</label>
+        <div class="color-slider-row">
+          <span class="color-slider-hint">See-through</span>
+          <input type="range" id="panel-opacity-slider" min="20" max="100" value="100" step="1">
+          <span class="color-slider-hint right">Solid</span>
+        </div>
+      </div>
+
+      <!-- Curve Intensity -->
+      <div class="color-setting">
+        <label class="color-setting-label">Polar Curve Intensity</label>
+        <div class="color-slider-row">
+          <span class="color-slider-hint">Muted</span>
+          <input type="range" id="curve-intensity-slider" min="0" max="200" value="100" step="5">
+          <span class="color-slider-hint right">Vivid</span>
+        </div>
+      </div>
+
+      <!-- Color Theme -->
+      <div class="color-setting">
+        <label class="color-setting-label">Polar Curve Color Palette</label>
+        <div class="theme-buttons">
+          <button class="theme-btn active" data-theme="ocean">Ocean</button>
+          <button class="theme-btn"        data-theme="warm">Warm</button>
+          <button class="theme-btn"        data-theme="mono">Mono</button>
+          <button class="theme-btn"        data-theme="neon">Neon</button>
+        </div>
+      </div>
+
+      <div class="boat-modal-actions">
+        <button id="btn-color-reset" class="btn btn-small">Reset Defaults</button>
+        <button id="btn-color-close" class="btn btn-small">Done</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Session Name Modal (create / rename) -->
   <div id="session-modal" class="boat-modal hidden" role="dialog" aria-modal="true" aria-labelledby="session-modal-title">

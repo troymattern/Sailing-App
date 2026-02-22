@@ -66,6 +66,13 @@ const TWS_COLORS = {
 };
 const DEFAULT_COLOR = '#94a3b8';
 
+const COLOR_PALETTES = {
+  ocean: { 6:'#06b6d4', 8:'#3b82f6', 10:'#8b5cf6', 12:'#22c55e', 16:'#f59e0b', 20:'#ef4444', 25:'#ec4899' },
+  warm:  { 6:'#f97316', 8:'#ef4444', 10:'#f59e0b', 12:'#dc2626', 16:'#ea580c', 20:'#b45309', 25:'#fbbf24' },
+  mono:  { 6:'rgba(255,255,255,0.40)', 8:'rgba(255,255,255,0.55)', 10:'rgba(255,255,255,0.65)', 12:'rgba(255,255,255,0.75)', 16:'rgba(255,255,255,0.83)', 20:'rgba(255,255,255,0.90)', 25:'rgba(255,255,255,0.96)' },
+  neon:  { 6:'#00ff88', 8:'#00f5ff', 10:'#f0ff00', 12:'#ff00f5', 16:'#ff8800', 20:'#ff0055', 25:'#8800ff' },
+};
+
 function twsBucket(tws) {
   const standards = Object.keys(TWS_COLORS).map(Number);
   return standards.reduce((prev, cur) =>
@@ -84,6 +91,9 @@ let gpsWatchId   = null;
 let currentSpeed = null;           // knots from GPS
 let angleIndex   = 4;              // default: 90° (0-based index into TARGET_ANGLES)
 let confirmed    = false;          // has the user confirmed they are at the target angle?
+
+let curveIntensity  = 1.0;         // multiplier for polar curve line width (0.5–2.0)
+let currentPalette  = 'ocean';     // active colour palette key
 
 // ─── Session management ───────────────────────────────────────────────────────
 
@@ -570,12 +580,12 @@ function drawPolar() {
 
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI);
-    ctx.strokeStyle = '#e2e8f0';
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
     ctx.lineWidth   = 1;
     ctx.stroke();
 
     if (showLabels) {
-      ctx.fillStyle   = '#94a3b8';
+      ctx.fillStyle   = 'rgba(255,255,255,0.50)';
       ctx.font        = '11px system-ui';
       ctx.textAlign   = 'center';
       ctx.fillText(label + ' kts', cx, cy + r + 12);
@@ -589,13 +599,13 @@ function drawPolar() {
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(end.x, end.y);
-    ctx.strokeStyle = '#e2e8f0';
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
     ctx.lineWidth   = 1;
     ctx.stroke();
 
     if (showLabels) {
       const lbl = polarToXY(a, maxBsp * 1.09);
-      ctx.fillStyle    = '#64748b';
+      ctx.fillStyle    = 'rgba(255,255,255,0.60)';
       ctx.font         = '11px system-ui';
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
@@ -650,7 +660,7 @@ function drawPolar() {
           cartesian.slice(1).forEach(pt => ctx.lineTo(pt.x, pt.y));
         }
         ctx.strokeStyle = color;
-        ctx.lineWidth   = lineWidth;
+        ctx.lineWidth   = lineWidth * Math.max(0.5, curveIntensity);
         ctx.lineJoin    = 'round';
         ctx.stroke();
         ctx.setLineDash([]);
@@ -702,7 +712,7 @@ function drawPolar() {
   ctx.beginPath();
   ctx.moveTo(cx, cy);
   ctx.lineTo(spokeEnd.x, spokeEnd.y);
-  ctx.strokeStyle = '#3b9ae1';
+  ctx.strokeStyle = '#5ac8fa';
   ctx.lineWidth   = 2;
   ctx.setLineDash([6, 4]);
   ctx.stroke();
@@ -710,7 +720,7 @@ function drawPolar() {
 
   if (showLabels) {
     const l = polarToXY(currentTwa, maxBsp * 1.09);
-    ctx.fillStyle    = '#3b9ae1';
+    ctx.fillStyle    = '#5ac8fa';
     ctx.font         = 'bold 11px system-ui';
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
@@ -718,7 +728,7 @@ function drawPolar() {
   }
 
   // Wind label
-  ctx.fillStyle    = '#94a3b8';
+  ctx.fillStyle    = 'rgba(255,255,255,0.45)';
   ctx.font         = 'bold 11px system-ui';
   ctx.textAlign    = 'center';
   ctx.textBaseline = 'top';
@@ -1240,6 +1250,117 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// ─── Color Settings ───────────────────────────────────────────────────────────
+const COLOR_SETTINGS_KEY = 'polar_color_settings';
+
+const elColorModal       = document.getElementById('color-modal');
+const elBtnColorSettings = document.getElementById('btn-color-settings');
+const elBtnColorClose    = document.getElementById('btn-color-close');
+const elBtnColorReset    = document.getElementById('btn-color-reset');
+const elTextBrightness   = document.getElementById('text-brightness-slider');
+const elPanelOpacity     = document.getElementById('panel-opacity-slider');
+const elCurveIntensity   = document.getElementById('curve-intensity-slider');
+
+function applyColorSettings({ textBrightness, panelOpacity, curveIntensity: ci, palette } = {}) {
+  if (textBrightness !== undefined) {
+    // Slider 0 (Dim) → 0.55 alpha, Slider 100 (Bright) → 0.95 alpha
+    const alpha = 0.55 + (textBrightness / 100) * 0.40;
+    document.documentElement.style.setProperty('--text', `rgba(255,255,255,${alpha.toFixed(2)})`);
+    elTextBrightness.value = textBrightness;
+  }
+  if (panelOpacity !== undefined) {
+    // Slider 20 (See-through) → alpha 0.04, Slider 100 (Solid) → alpha 0.26
+    const alpha = 0.04 + ((panelOpacity - 20) / 80) * 0.22;
+    document.documentElement.style.setProperty('--panel-bg', `rgba(255,255,255,${alpha.toFixed(3)})`);
+    elPanelOpacity.value = panelOpacity;
+  }
+  if (ci !== undefined) {
+    curveIntensity = 0.5 + (ci / 200);
+    elCurveIntensity.value = ci;
+  }
+  if (palette && COLOR_PALETTES[palette]) {
+    currentPalette = palette;
+    Object.assign(TWS_COLORS, COLOR_PALETTES[palette]);
+    document.querySelectorAll('.theme-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.theme === palette);
+    });
+  }
+}
+
+function saveColorSettings() {
+  const settings = {
+    textBrightness: parseInt(elTextBrightness.value, 10),
+    panelOpacity:   parseInt(elPanelOpacity.value,   10),
+    curveIntensity: parseInt(elCurveIntensity.value,  10),
+    palette:        currentPalette,
+  };
+  try { localStorage.setItem(COLOR_SETTINGS_KEY, JSON.stringify(settings)); } catch {}
+}
+
+function loadColorSettings() {
+  try {
+    const raw = localStorage.getItem(COLOR_SETTINGS_KEY);
+    if (raw) applyColorSettings(JSON.parse(raw));
+  } catch {}
+}
+
+elBtnColorSettings.addEventListener('click', () => {
+  elColorModal.classList.remove('hidden');
+});
+
+function closeColorModal() {
+  elColorModal.classList.add('hidden');
+  saveColorSettings();
+  drawPolar();
+}
+
+elBtnColorClose.addEventListener('click', closeColorModal);
+elColorModal.addEventListener('click', e => { if (e.target === elColorModal) closeColorModal(); });
+
+elBtnColorReset.addEventListener('click', () => {
+  document.documentElement.style.removeProperty('--text');
+  document.documentElement.style.removeProperty('--panel-bg');
+  curveIntensity = 1.0;
+  currentPalette = 'ocean';
+  Object.assign(TWS_COLORS, COLOR_PALETTES.ocean);
+  elTextBrightness.value  = 0;
+  elPanelOpacity.value    = 100;
+  elCurveIntensity.value  = 100;
+  document.querySelectorAll('.theme-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.theme === 'ocean');
+  });
+  drawPolar();
+  try { localStorage.removeItem(COLOR_SETTINGS_KEY); } catch {}
+});
+
+elTextBrightness.addEventListener('input', () => {
+  const alpha = 0.55 + (parseInt(elTextBrightness.value, 10) / 100) * 0.40;
+  document.documentElement.style.setProperty('--text', `rgba(255,255,255,${alpha.toFixed(2)})`);
+});
+
+elPanelOpacity.addEventListener('input', () => {
+  const alpha = 0.04 + ((parseInt(elPanelOpacity.value, 10) - 20) / 80) * 0.22;
+  document.documentElement.style.setProperty('--panel-bg', `rgba(255,255,255,${alpha.toFixed(3)})`);
+});
+
+elCurveIntensity.addEventListener('input', () => {
+  curveIntensity = 0.5 + (parseInt(elCurveIntensity.value, 10) / 200);
+  drawPolar();
+});
+
+document.querySelectorAll('.theme-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const theme = btn.dataset.theme;
+    if (!COLOR_PALETTES[theme]) return;
+    currentPalette = theme;
+    Object.assign(TWS_COLORS, COLOR_PALETTES[theme]);
+    document.querySelectorAll('.theme-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.theme === theme);
+    });
+    drawPolar();
+  });
+});
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 loadSessions();
 
@@ -1251,6 +1372,7 @@ activeSessionId = sessions.find(s => s.id === savedActiveId) ? savedActiveId : s
 dataPoints      = getActiveSession().dataPoints;
 
 loadBoatBackground();
+loadColorSettings();
 updateOnlineStatus();
 renderSessionSelector();
 renderAngleInstruction();
